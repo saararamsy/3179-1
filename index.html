@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Data Visualizations (2023)</title>
+    <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+    <style>
+        .visualization {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="visualization" id="choropleth-map"></div>
+<div class="visualization" id="bubble-chart"></div>
+
+<script type="text/javascript">
+    var choroplethSpec = {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "title": "YouTube Subscribers by Country (2023)",
+        "width": 800,
+        "height": 400,
+        "projection": {"type": "equalEarth"},
+        "data": {
+            "url": "https://raw.githubusercontent.com/saararamsy/3179/main/ne_110m.json",
+            "format": {"type": "topojson", "feature": "ne_110m_admin_0_countries"}
+        },
+        "transform": [
+            {
+                "lookup": "properties.NAME",
+                "from": {
+                    "data": {
+                        "url": "https://raw.githubusercontent.com/saararamsy/3179/main/Cleaned_Global_YouTube_Statistic_2023.csv"
+                    },
+                    "key": "Country",
+                    "fields": ["subscribers"]
+                }
+            }
+        ],
+        "mark": {"type": "geoshape"},
+        "encoding": {
+            "color": {
+                "field": "subscribers",
+                "type": "quantitative",
+                "title": "Number of Subscribers"
+            },
+            "tooltip": [
+                {"field": "properties.NAME", "type": "nominal", "title": "Country"},
+                {"field": "subscribers", "type": "quantitative", "title": "Subscribers"}
+            ]
+        }
+    };
+
+
+    var bubbleChartSpec = {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "width": 500,
+        "height": 400,
+        "title": "YouTube Stats Bubble Chart (2023)",
+        "data": {
+          "url": "https://raw.githubusercontent.com/saararamsy/3179/main/Cleaned_Global_YouTube_Statistic_2023.csv"
+        },
+        "params": [
+          {
+            "name": "categorySelect",
+            "bind": {
+              "input": "select",
+              "options": [
+                null,
+                "Music",
+                "Entertainment",
+                "Education",
+                "Shows",
+                "People & Blogs",
+                "Gaming"
+              ],
+              "labels": [
+                "Show All",
+                "Music",
+                "Entertainment",
+                "Education",
+                "Shows",
+                "People & Blogs",
+                "Gaming"
+              ],
+              "name": "Category Selection: "
+            }
+          }
+        ],
+        "transform": [
+          {
+            "filter": "categorySelect == null || datum.category == categorySelect"
+          }
+        ],
+        "encoding": {
+          "x": {
+            "field": "video views",
+            "type": "quantitative",
+            "title": "Video Views"
+          },
+          "y": {
+            "field": "subscribers",
+            "type": "quantitative",
+            "title": "Subscribers"
+          }
+        },
+        "layer": [
+          {
+            "mark": "circle",
+            "encoding": {
+              "size": {
+                "field": "highest_yearly_earnings",
+                "type": "quantitative",
+                "title": "Highest Yearly Earnings"
+              },
+              "color": {
+                "field": "category",
+                "type": "nominal",
+                "title": "Category",
+                "legend": {
+                  "title": "Category"
+                }
+              },
+              "tooltip": [
+                {
+                  "field": "Youtuber",
+                  "type": "nominal",
+                  "title": "YouTuber"
+                },
+                {
+                  "field": "Country",
+                  "type": "nominal",
+                  "title": "Country"
+                },
+                {
+                  "field": "video views",
+                  "type": "quantitative",
+                  "title": "Video Views"
+                },
+                {
+                  "field": "subscribers",
+                  "type": "quantitative",
+                  "title": "Subscribers"
+                },
+                {
+                  "field": "highest_yearly_earnings",
+                  "type": "quantitative",
+                  "title": "Highest Yearly Earnings"
+                }
+              ]
+            }
+          },
+          {
+            "mark": {
+              "type": "text",
+              "align": "left",
+              "baseline": "middle",
+              "dx": -2,
+              "fontSize": 8,
+              "fontStyle": "italic"
+            },
+            "encoding": {
+              "text": {"field": "Youtuber", "type": "nominal"},
+              "color": {"value": "black"},
+              "opacity": {
+                "condition": {
+                  "test": "datum['video views'] > 100000000000",
+                  "value": 1
+                },
+                "value": 0
+              },
+              "tooltip": [
+                {
+                  "field": "Youtuber",
+                  "type": "nominal"
+                }
+              ]
+            }
+          }
+        ]
+    };
+
+
+    vegaEmbed('#choropleth-map', choroplethSpec);
+    vegaEmbed('#bubble-chart', bubbleChartSpec);
+</script>
+
+</body>
+</html>
